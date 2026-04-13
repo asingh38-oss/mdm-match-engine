@@ -1,0 +1,15 @@
+.env
+*.env
+__pycache__/
+*.py[cod]
+venv/
+env/
+data/raw/
+data/processed/
+*.csv
+*.index
+*.faiss
+.vscode/
+.DS_Store
+*.log
+!data/test/sample_records.csv

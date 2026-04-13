@@ -1,0 +1,21 @@
+id,name,address,city,state,zip,country
+1,The Boeing Company Inc.,100 N. Riverside Plaza,Chicago,IL,60606,USA
+2,Boeing Company,100 North Riverside Plz,Chicago,IL,60606,United States
+3,Boieng Corp,100 N Riverside,Chicago,IL,60606,US
+4,Airbus S.A.S.,1 Rond-Point Maurice Bellonte,Blagnac,,31707,France
+5,AIRBUS SAS,1 Rond Point Maurice Bellonte,Blagnac,,31707,FR
+6,Lockheed Martin Corporation,6801 Rockledge Dr,Bethesda,MD,20817,USA
+7,Lockheed Martin Corp.,6801 Rockledge Drive,Bethesda,MD,20817,United States
+8,Lockheed Martin,2121 Crystal Drive,Arlington,VA,22202,USA
+9,Alphabet Inc.,1600 Amphitheatre Pkwy,Mountain View,CA,94043,USA
+10,Google LLC,1600 Amphitheatre Parkway,Mountain View,CA,94043,United States
+11,株式会社トヨタ自動車,1 Toyota-cho,Toyota City,Aichi,,Japan
+12,Toyota Motor Corporation,1 Toyota-cho,Toyota City,Aichi,,JP
+13,Müller GmbH & Co. KG,Industriestraße 12,München,Bavaria,80333,Germany
+14,Muller GmbH Co KG,Industriestrasse 12,Munich,Bayern,80333,DE
+15,Honeywell International Inc.,300 S Tryon St,Charlotte,NC,28202,USA
+16,Honeywell Intl,300 South Tryon Street,Charlotte,NC,28202,United States
+17,General Electric Co.,1 Neumann Way,Evendale,OH,45215,USA
+18,GE Company,1 Neumann Way,Evendale,OH,45215,US
+19,Siemens AG,Werner-von-Siemens-Str. 1,Munich,,80333,Germany
+20,Totally Different Company LLC,999 Fake Street,Nowhere,TX,12345,USA
