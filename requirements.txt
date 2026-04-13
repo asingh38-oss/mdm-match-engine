@@ -9,7 +9,7 @@ deep-translator>=1.11.4
 
 # Embeddings + vector search
 sentence-transformers>=2.7.0
-faiss-cpu>=1.8.0
+faiss-cpu>=1.12.0          # Windows requires 1.12.0+, older versions don't have wheels
 
 # LLM client
 openai>=1.30.0

@@ -1,15 +1,58 @@
+# Environment & secrets
 .env
 *.env
+
+# Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
 venv/
 env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data — never commit raw MDM data
 data/raw/
 data/processed/
 *.csv
+*.xlsx
+*.json
+!data/test/sample_records.csv    # test data is OK to commit
+
+# Vector index files (can be large)
 *.index
 *.faiss
+
+# HuggingFace model cache (downloaded at runtime, don't commit)
+.cache/
+*.safetensors
+*.bin
+models/
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
-!data/test/sample_records.csv
+logs/
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
