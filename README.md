@@ -136,10 +136,11 @@ Takes about 1-2 minutes on the test dataset since abbreviation expansion makes o
 
 | name | role |
 |------|------|
-| Aditya Singh | |
-| Maddy | |
-| Samir | |
-| Darell | |
+| Aditya Singh | Setup + Testing + Docs | 
+| Maddy P. | Data Loader |
+| Samir A. | Pipeline Orchestrator |
+| Darell S. | Entry Point + Sample Output |
+| Matthew D. | Testing + Docs |
 
 ## Timeline
 
