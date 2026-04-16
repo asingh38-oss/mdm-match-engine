@@ -1,78 +1,67 @@
-import pytest
-import os
-import pandas as pd
+"""
+test_loader.py
+run with: pytest tests/unit/test_loader.py -v
+"""
 
-# Try different possible import paths for loader
-try:
-    from src.loader import load_csv
-except ImportError:
-    try:
-        from src.data.loader import load_csv
-    except ImportError:
-        load_csv = None
+import csv
+import pytest
+from src.utils.loader import load_records
 
 
 @pytest.fixture
 def sample_csv(tmp_path):
-    """Create a sample CSV file for testing."""
-    file_path = tmp_path / "sample.csv"
-    data = pd.DataFrame({
-        "id": [1, 2, 3],
-        "name": ["Alice", "Bob", "Charlie"],
-        "email": ["a@test.com", "b@test.com", "c@test.com"]
-    })
-    data.to_csv(file_path, index=False)
-    return file_path
+    # make a small test csv in a temp folder
+    f = tmp_path / "test.csv"
+    with open(f, "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["name", "address", "city", "state", "zip", "country"])
+        writer.writeheader()
+        writer.writerow({"name": "Boeing", "address": "100 N Riverside", "city": "Chicago", "state": "IL", "zip": "60606", "country": "USA"})
+        writer.writerow({"name": "Airbus", "address": "1 Rond Point", "city": "Blagnac", "state": "", "zip": "31707", "country": "France"})
+        writer.writerow({"name": "Lockheed Martin", "address": "6801 Rockledge Dr", "city": "Bethesda", "state": "MD", "zip": "20817", "country": "USA"})
+    return f
 
 
 @pytest.fixture
-def missing_column_csv(tmp_path):
-    """CSV missing required column (email)."""
-    file_path = tmp_path / "missing.csv"
-    data = pd.DataFrame({
-        "id": [1, 2],
-        "name": ["Alice", "Bob"]
-    })
-    data.to_csv(file_path, index=False)
-    return file_path
+def missing_columns_csv(tmp_path):
+    # csv that only has name column, rest are missing
+    f = tmp_path / "missing.csv"
+    with open(f, "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["name"])
+        writer.writeheader()
+        writer.writerow({"name": "Boeing"})
+    return f
 
 
-def test_loader_import():
-    """Ensure loader function exists."""
-    assert load_csv is not None, "load_csv function not found in expected modules"
-
-
-def test_load_csv_success(sample_csv):
-    """Test CSV loads correctly and returns correct number of records."""
-    records = load_csv(sample_csv)
-
-    assert records is not None
+def test_loads_correct_count(sample_csv):
+    records = load_records(str(sample_csv))
     assert len(records) == 3
 
 
-def test_load_csv_structure(sample_csv):
-    """Test records have expected structure."""
-    records = load_csv(sample_csv)
-
-    # Assuming list of dicts
+def test_returns_list_of_dicts(sample_csv):
+    records = load_records(str(sample_csv))
     assert isinstance(records, list)
     assert isinstance(records[0], dict)
 
-    assert "id" in records[0]
-    assert "name" in records[0]
-    assert "email" in records[0]
+
+def test_record_has_expected_keys(sample_csv):
+    records = load_records(str(sample_csv))
+    for key in ["name", "address", "city", "state", "zip", "country"]:
+        assert key in records[0]
 
 
-def test_missing_columns(missing_column_csv):
-    """Test loader handles missing required columns."""
-    with pytest.raises(Exception):
-        load_csv(missing_column_csv)
+def test_values_are_correct(sample_csv):
+    records = load_records(str(sample_csv))
+    assert records[0]["name"] == "Boeing"
+    assert records[0]["city"] == "Chicago"
 
 
-def test_empty_file(tmp_path):
-    """Test empty CSV handling."""
-    file_path = tmp_path / "empty.csv"
-    pd.DataFrame().to_csv(file_path, index=False)
+def test_missing_columns_doesnt_crash(missing_columns_csv):
+    # missing columns should come back as None, not throw an error
+    records = load_records(str(missing_columns_csv))
+    assert isinstance(records, list)
+    assert records[0]["address"] is None
 
-    with pytest.raises(Exception):
-        load_csv(file_path)
+
+def test_bad_path_returns_empty_list():
+    records = load_records("data/doesnt_exist.csv")
+    assert records == []

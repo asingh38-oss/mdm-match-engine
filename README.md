@@ -1,55 +1,49 @@
 # MDM Match and Merge Engine
-**Honeywell x UNC Charlotte — Undergraduate Capstone Project**
+Honeywell x UNC Charlotte Capstone Project
 
-An enterprise-grade customer record matching engine built to identify duplicate entries in Honeywell's Master Data Management (MDM) system. Handles multilingual data, address normalization, company name variations, typos, and abbreviations — with LLM-assisted reasoning at the core.
+Matching engine that finds duplicate customer records in Honeywell's MDM system. Handles multilingual company names, address variations, typos, and abbreviations using embeddings and LLM agents.
 
----
+## What It Does
 
-## What This Does
+Takes customer records (company name + address) from an MDM table, compares pairs, and outputs a confidence score from 0 to 100.
 
-Takes customer records (company name + address) from an MDM table, compares candidate pairs, and outputs a confidence score (0–100) with a classification:
-
-| Score | Classification |
+| score | classification |
 |-------|----------------|
-| > 85  | ✅ High Confidence Match |
-| 60–85 | ⚠️ Potential Match |
-| < 60  | ❌ Non-Match |
+| > 85  | high confidence match |
+| 60–85 | potential match |
+| < 60  | non-match |
 
-Every decision comes with a human-readable explanation of *why* the engine classified it the way it did.
+Each result also comes with a plain english explanation of why it matched or didn't.
 
----
-
-## Pipeline Overview
+## How the Pipeline Works
 
 ```
-Raw MDM Records
+raw MDM records
       │
       ▼
-[Pre-Processing]
-  - Language detection
-  - Translation (non-English → English)
-  - Cleanup: lowercase, trim, strip punctuation
-  - Abbreviation expansion (LLM)
+pre-processing
+  - language detection
+  - translation (non-english → english)
+  - cleanup: lowercase, trim, strip punctuation
+  - abbreviation expansion via LLM
       │
       ▼
-[Embedding Generation]
-  - Encode each record as: "company: {name} || address: {addr} || city: {city} || country: {country}"
-  - Store in vector index (FAISS)
-  - Pull candidate pairs via similarity threshold
+embedding generation
+  - encode each record as: "company: {name} || address: {addr} || city: {city} || country: {country}"
+  - index with FAISS
+  - pull candidate pairs above similarity threshold (avoids brute force n^2)
       │
       ▼
-[5-Level Matching Engine]
-  Level 1 → Exact Match Check
-  Level 2 → Geo Distance Check (via API)
-  Level 3 → Company Name Verification Agent (LLM)
-  Level 4 → Address Deep Analysis Agent (LLM)
-  Level 5 → Final Score Computation
+5-level matching engine
+  level 1 → exact/fuzzy match check
+  level 2 → geo distance check (week 2)
+  level 3 → company name verification agent (week 2)
+  level 4 → address deep analysis agent (week 2)
+  level 5 → final score computation (week 3)
       │
       ▼
-[Classification + Reasoning Output]
+classification + reasoning output
 ```
-
----
 
 ## Project Structure
 
@@ -57,102 +51,104 @@ Raw MDM Records
 mdm-match-engine/
 ├── src/
 │   ├── preprocessing/
-│   │   ├── cleaner.py          # Text normalization, cleanup
-│   │   ├── language.py         # Language detection + translation
+│   │   ├── cleaner.py          # text normalization, cleanup
+│   │   ├── language.py         # language detection + translation
 │   │   ├── abbreviations.py    # LLM-based abbreviation expansion
-│   │   └── embeddings.py       # Embedding generation + FAISS indexing
+│   │   ├── embeddings.py       # embedding generation + FAISS indexing
+│   │   └── pipeline.py         # chains all preprocessing steps together
 │   ├── matching/
-│   │   ├── level1_exact.py     # Exact match check
-│   │   ├── level2_geo.py       # Geo distance check
-│   │   ├── level3_name.py      # Company name verification agent
-│   │   ├── level4_address.py   # Address deep analysis agent
-│   │   ├── level5_scoring.py   # Final score computation
-│   │   └── orchestrator.py     # Runs the full pipeline
+│   │   ├── level1_exact.py     # exact match check
+│   │   ├── level2_geo.py       # geo distance check (week 2)
+│   │   ├── level3_name.py      # company name verification agent (week 2)
+│   │   ├── level4_address.py   # address deep analysis agent (week 2)
+│   │   ├── level5_scoring.py   # final score computation (week 3)
+│   │   └── orchestrator.py     # runs the full pipeline (week 3)
 │   └── utils/
 │       ├── config.py           # API keys, thresholds, constants
-│       └── logger.py           # Logging setup
+│       ├── loader.py           # CSV loader
+│       └── logger.py           # logging setup
 ├── data/
-│   ├── raw/                    # Original MDM exports (gitignored)
-│   ├── processed/              # Cleaned/normalized records
-│   └── test/                   # Curated test datasets
+│   ├── raw/                    # original MDM exports (gitignored)
+│   ├── processed/              # cleaned/normalized records
+│   └── test/                   # test datasets
 ├── tests/
-│   ├── unit/
-│   └── integration/
-├── notebooks/                  # Exploration + analysis notebooks
+│   └── unit/
 ├── docs/
-│   └── architecture.md         # Design doc (see Week 1 deliverable)
-├── .env.example                # Template for API keys
-├── .gitignore
+│   └── architecture.md
+├── run.py
+├── .env.example
 ├── requirements.txt
 └── README.md
 ```
 
----
-
 ## Setup
 
-### 1. Clone the repo
+Clone the repo and cd into it.
+
 ```bash
-git clone https://github.com/<your-org>/mdm-match-engine.git
+git clone https://github.com/asingh38-oss/mdm-match-engine.git
 cd mdm-match-engine
 ```
 
-### 2. Create a virtual environment
+Create a virtual environment and activate it.
+
 ```bash
 python -m venv venv
-source venv/bin/activate       # Mac/Linux
-venv\Scripts\activate          # Windows
+source venv/bin/activate       # mac/linux
+venv\Scripts\activate          # windows
 ```
 
-### 3. Install dependencies
+If you're on Windows and get a script execution error run this first:
+```bash
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+Install dependencies.
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set up your environment variables
+If `faiss-cpu` fails on Windows run `pip install faiss-cpu==1.13.2` manually. If `sentence-transformers` errors out run `pip install sentence-transformers` separately.
+
+Copy the example env file and fill in your API keys.
+
 ```bash
 cp .env.example .env
-# then fill in your API keys in .env
 ```
 
-### 5. Run the pre-processing pipeline (Week 1)
+Run it.
+
 ```bash
-python -m src.preprocessing.cleaner --input data/test/sample_records.csv
+python run.py
 ```
 
----
+Takes about 1-2 minutes on the test dataset since abbreviation expansion makes one API call per record.
 
 ## API Keys Needed
 
-| Service | Purpose | Where to get it |
+| service | what it's used for | where to get it |
 |--------|---------|-----------------|
-| OpenAI (or Anthropic) | Translation, abbreviation expansion, name/address agents | platform.openai.com |
-| Google Maps Geocoding API | Geo distance checks (Level 2) | console.cloud.google.com |
-| (Optional) DeepL API | Alternate translation option | deepl.com/pro-api |
-
----
+| OpenAI | abbreviation expansion, name/address agents | platform.openai.com |
+| Google Maps Geocoding | geo distance checks (level 2, week 2) | console.cloud.google.com |
 
 ## Team
 
-| Name | Role |
+| name | role |
 |------|------|
-| [Name] | |
-| [Name] | |
-| [Name] | |
-| [Name] | |
-
----
+| Aditya Singh | |
+| Maddy | |
+| Samir | |
+| Darell | |
 
 ## Timeline
 
-- **Week 1** — Pre-processing pipeline + embedding generation + exact match ✅ *(in progress)*
-- **Week 2** — Multi-agent matching engine (Levels 2–4)
-- **Week 3** — Scoring, classification, reasoning output, final integration
+Week 1 — preprocessing pipeline, embeddings, candidate pair generation ✅
 
----
+Week 2 — multi-agent matching engine (levels 2–4)
+
+Week 3 — scoring, classification, reasoning output, final integration
 
 ## Notes
 
-- All raw MDM data goes in `data/raw/` and is gitignored — don't commit any customer data
-- Use `data/test/` for sanitized/synthetic test records only
-- Keep API keys in `.env` — never commit them
+Raw MDM data goes in `data/raw/` and is gitignored so don't commit any customer data. Test data only goes in `data/test/`. Never commit your `.env` file. Short company names like "GE Company" can confuse the language detector since it doesn't have enough characters to work with — known issue, fixing in week 2.
