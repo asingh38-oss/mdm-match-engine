@@ -92,6 +92,22 @@ Guidelines:
 
         response_text = response.choices[0].message.content.strip()
 
+        # handle empty response from GPT
+        if not response_text:
+            logger.warning("GPT returned empty response for name verification")
+            return {
+                "name_match_score": 0,
+                "is_same_company": False,
+                "relationship": "error",
+                "reasoning": "GPT returned an empty response",
+            }
+
+        # strip markdown code blocks if GPT wraps the JSON in them
+        if response_text.startswith("```"):
+            response_text = response_text.strip("`").strip()
+            if response_text.startswith("json"):
+                response_text = response_text[4:].strip()
+
         # Parse JSON from response
         result = json.loads(response_text)
 
