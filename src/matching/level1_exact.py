@@ -45,9 +45,9 @@ def exact_match_score(record_a: dict, record_b: dict) -> dict:
     zip_b = str(record_b.get("zip_clean", ""))
 
     # Compute fuzzy similarity scores (token sort ratio handles word reordering)
-    name_score = fuzz.token_sort_ratio(name_a, name_b)
-    addr_score = fuzz.token_sort_ratio(addr_a, addr_b)
-    city_score = fuzz.ratio(city_a, city_b)
+    name_score = int(fuzz.token_sort_ratio(name_a, name_b))
+    addr_score = int(fuzz.token_sort_ratio(addr_a, addr_b))
+    city_score = int(fuzz.ratio(city_a, city_b))
 
     # Zip exact match is a strong signal
     zip_match = zip_a == zip_b and zip_a != ""
