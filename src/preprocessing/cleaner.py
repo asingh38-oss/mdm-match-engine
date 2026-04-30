@@ -26,8 +26,8 @@ ARTICLES_TO_STRIP = {
 # Common legal entity suffixes — we keep these but normalize them
 # so "LLC" and "L.L.C." and "llc" all become "LLC"
 ENTITY_SUFFIX_MAP = {
-    r"\bl\.?l\.?c\.?\b": "LLC",
-    r"\binc\.?\b": "INC",
+    r"\bl\.?l\.?c\.?(?=\s|$)": "LLC",
+    r"\binc\.?(?=\s|$)": "INC",
     r"\bcorp\.?\b": "CORP",
     r"\bco\.?\b": "CO",
     r"\bltd\.?\b": "LTD",
