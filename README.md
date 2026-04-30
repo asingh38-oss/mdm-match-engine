@@ -119,18 +119,19 @@ Takes about 1-2 minutes on the test dataset since abbreviation expansion makes o
 
 | name | role |
 |------|------|
-| Aditya Singh | |
-| Maddy | |
-| Samir | |
-| Darell | |
+| Aditya Singh | level5_scoring.py + orchestrator.py |
+| Maddy | tests/unit/test_orchestrator.py |
+| Samir | docs/threshold_calibration.md |
+| Darell | docs/findings.md |
+| Matthew | tests/unit/test_scoring.py |
 
 ## Timeline
 
 Week 1 — preprocessing pipeline, embeddings, candidate pair generation ✅
 
-Week 2 — multi-agent matching engine (levels 2–4) in progress
+Week 2 — multi-agent matching engine (levels 2–4) in progress ✅
 
-Week 3 — scoring, classification, reasoning output, final integration
+Week 3 — scoring, classification, reasoning output, final integration ✅
 
 ## Notes
 
