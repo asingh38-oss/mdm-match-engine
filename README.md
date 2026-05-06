@@ -5,7 +5,7 @@ This is a matching engine that finds duplicate customer records in Honeywell's M
 
 ## What It Does
 
-Takes customer records (company name + address) from an MDM table, compares pairs, and spits out a confidence score from 0 to 100 along with a plain english explanation of why it matched or didn't.
+Takes customer records (company name + address) from an MDM table, compares pairs, and outputs a confidence score from 0 to 100 along with a plain english explanation of why it matched or didn't.
 
 | score | classification |
 |-------|----------------|
@@ -15,7 +15,7 @@ Takes customer records (company name + address) from an MDM table, compares pair
 
 ## How It Works
 
-Records go through preprocessing first to get cleaned up and translated, then get encoded as embeddings so we can efficiently find similar pairs without comparing every record against every other record. Those candidate pairs then get passed through the matching engine.
+Records go through preprocessing first to get cleaned up and translated, then get encoded as embeddings so we can efficiently find similar pairs without comparing every record against every other record. Those candidate pairs then get passed through the full 5-level matching engine.
 
 ```
 raw MDM records
@@ -35,13 +35,25 @@ embedding generation
 matching engine
   level 1 → exact/fuzzy match check ✅
   level 2 → geo distance check ✅
-  level 3 → company name verification agent (in progress)
-  level 4 → address deep analysis agent (in progress)
-  level 5 → final score computation (week 3)
+  level 3 → company name verification agent ✅
+  level 4 → address deep analysis agent ✅
+  level 5 → final score computation ✅
       │
       ▼
 confidence score + classification + reasoning
 ```
+
+## Results on Test Dataset
+
+Ran against 20 synthetic records covering multilingual entries, typos, abbreviations, and multiple offices. Found 12 candidate pairs:
+
+| classification | count |
+|----------------|-------|
+| High Confidence Match | 3 |
+| Potential Match | 5 |
+| Non-Match | 4 |
+
+Notable results: Müller GmbH & Co. KG vs Muller GmbH Co KG → 89.0 (High Confidence), Lockheed Martin HQ vs Arlington office → correctly classified as Non-Match (different addresses). Full results in `docs/findings.md`.
 
 ## Project Structure
 
@@ -49,29 +61,38 @@ confidence score + classification + reasoning
 mdm-match-engine/
 ├── src/
 │   ├── preprocessing/
-│   │   ├── cleaner.py          # text normalization, cleanup
-│   │   ├── language.py         # language detection + translation
-│   │   ├── abbreviations.py    # LLM-based abbreviation expansion
-│   │   ├── embeddings.py       # embedding generation + FAISS indexing
-│   │   └── pipeline.py         # chains all preprocessing steps together
+│   │   ├── cleaner.py              # text normalization, cleanup
+│   │   ├── language.py             # language detection + translation
+│   │   ├── abbreviations.py        # LLM-based abbreviation expansion
+│   │   ├── embeddings.py           # embedding generation + FAISS indexing
+│   │   └── pipeline.py             # chains all preprocessing steps together
 │   ├── matching/
-│   │   ├── level1_exact.py     # exact match check ✅
-│   │   ├── level2_geo.py       # geo distance check ✅
-│   │   ├── level3_name.py      # company name verification agent (in progress)
-│   │   ├── level4_address.py   # address deep analysis agent (in progress)
-│   │   ├── level5_scoring.py   # final score computation (week 3)
-│   │   └── orchestrator.py     # runs the full pipeline
+│   │   ├── level1_exact.py         # exact/fuzzy match check
+│   │   ├── level2_geo.py           # geo distance check via Google Maps
+│   │   ├── level3_name.py          # LLM company name verification
+│   │   ├── level4_address.py       # LLM address deep analysis
+│   │   ├── level5_scoring.py       # final score computation
+│   │   └── orchestrator.py         # runs all 5 levels in sequence
 │   └── utils/
-│       ├── config.py           # API keys, thresholds, constants
-│       ├── loader.py           # CSV loader
-│       └── logger.py           # logging setup
+│       ├── config.py               # API keys, thresholds, constants
+│       ├── loader.py               # CSV loader
+│       └── logger.py               # logging setup
 ├── data/
-│   ├── raw/                    # original MDM exports (gitignored)
-│   └── test/                   # test datasets
+│   ├── raw/                        # MDM exports — gitignored, never commit
+│   └── test/
+│       └── sample_records.csv      # 20 synthetic test records
+├── docs/
+│   ├── architecture.md             # technical design doc
+│   ├── findings.md                 # results and known issues
+│   └── threshold_calibration.md    # threshold tuning notes
 ├── tests/unit/
-├── docs/architecture.md
-├── run.py
-├── .env.example
+│   ├── test_cleaner.py             # 17 tests for text normalization
+│   ├── test_loader.py              # 6 tests for CSV loader
+│   ├── test_scoring.py             # 7 tests for level 5 scoring
+│   └── test_orchestrator.py        # 6 tests for full pipeline (mocked)
+├── run.py                          # main entry point
+├── CONTRIBUTING.md                 # task assignments doc
+├── .env.example                    # template for API keys
 └── requirements.txt
 ```
 
@@ -106,7 +127,15 @@ Then run it:
 python run.py
 ```
 
-Takes about 1-2 minutes on the test dataset since abbreviation expansion makes one API call per record.
+Takes a few minutes — preprocessing makes one API call per record for abbreviation expansion, and the matching engine makes additional calls per candidate pair.
+
+## Running Tests
+
+```bash
+python -m pytest tests/unit/ -v
+```
+
+36 tests, all passing.
 
 ## API Keys Needed
 
@@ -119,7 +148,7 @@ Takes about 1-2 minutes on the test dataset since abbreviation expansion makes o
 
 | name | role |
 |------|------|
-| Aditya Singh | |
+| Aditya Singh | Set up the repo, CI, and dev environment. Debugged and integrated teammate contributions throughout all 3 weeks |
 | Maddy | |
 | Samir | |
 | Darell | |
@@ -128,10 +157,10 @@ Takes about 1-2 minutes on the test dataset since abbreviation expansion makes o
 
 Week 1 — preprocessing pipeline, embeddings, candidate pair generation ✅
 
-Week 2 — multi-agent matching engine (levels 2–4) in progress
+Week 2 — multi-agent matching engine (levels 2–4) ✅
 
-Week 3 — scoring, classification, reasoning output, final integration
+Week 3 — scoring, classification, reasoning output, final integration ✅
 
-## Notes
+## Known Limitations
 
-Raw MDM data goes in `data/raw/` and is gitignored so don't commit any customer data. Test data only in `data/test/`. Never commit your `.env`. Short company names like "GE Company" can trip up the language detector since there aren't enough characters to detect reliably — known issue, fixing this week.
+The geo distance check (level 2) currently returns REQUEST_DENIED due to Google Cloud billing configuration — it defaults to a neutral score and the engine still works, but scores would be 10-17 points higher with geo fully enabled. The Toyota Japanese transliteration case also doesn't match correctly due to the lossy phonetic rendering — both issues are documented with fixes in `docs/findings.md`.
