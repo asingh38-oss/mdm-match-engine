@@ -21,6 +21,12 @@ logger = get_logger(__name__)
 
 
 class PreprocessingPipeline:
+    """
+    Small orchestration wrapper for the preprocessing stages.
+
+    The class accepts injectable stage modules so unit tests or alternate
+    implementations can be plugged in without changing the calling code.
+    """
 
     def __init__(
         self,
@@ -44,10 +50,13 @@ class PreprocessingPipeline:
         self.embeddings = embeddings_module
 
     def run(self, records: Sequence[dict[str, Any]]) -> Any:
+        """Run the configured preprocessing stages in the expected order."""
         if records is None:
             raise ValueError("records cannot be None")
 
         current_records = list(records)
+        # Keep the stage order explicit because later steps rely on fields
+        # created by earlier normalization and enrichment passes.
         current_records = self._run_cleaner(current_records)
         current_records = self._run_language(current_records)
         current_records = self._run_abbreviations(current_records)
@@ -70,6 +79,7 @@ class PreprocessingPipeline:
 
     @staticmethod
     def _call_stage(stage: Any, method_names: list[str], data: Any, stage_name: str) -> Any:
+        """Resolve a callable stage entry point from a module-like object."""
         if callable(stage):
             return stage(data)
 
@@ -84,20 +94,25 @@ class PreprocessingPipeline:
 
 # wrappers so the pipeline class can call our per-record functions
 def _batch_clean(records):
+    """Apply the record cleaner to every input record."""
     return [clean_record(r) for r in records]
 
 def _batch_translate(records):
+    """Enrich each record with language metadata and translations."""
     return [enrich_record_with_translations(r) for r in records]
 
 def _batch_expand(records):
+    """Expand abbreviations after translation has normalized the text."""
     return [expand_record_abbreviations(r) for r in records]
 
 def _batch_embed(records):
+    """Generate candidate pairs from the fully processed record set."""
     _, _, pairs = run_embedding_pipeline(records)
     return pairs
 
 
 class MDMPreprocessingPipeline(PreprocessingPipeline):
+    """Concrete pipeline that binds directly to this repo's record helpers."""
     def _run_cleaner(self, records):
         return _batch_clean(records)
 
@@ -112,6 +127,7 @@ class MDMPreprocessingPipeline(PreprocessingPipeline):
 
 
 def run_pipeline(records: list[dict]) -> tuple[list[dict], list[tuple]]:
+    """Run the full preprocessing flow and return processed records plus pairs."""
     if not records:
         logger.warning("got empty records list, nothing to do")
         return [], []

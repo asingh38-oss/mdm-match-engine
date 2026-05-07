@@ -55,6 +55,17 @@ Ran against 20 synthetic records covering multilingual entries, typos, abbreviat
 
 Notable results: Müller GmbH & Co. KG vs Muller GmbH Co KG → 89.0 (High Confidence), Lockheed Martin HQ vs Arlington office → correctly classified as Non-Match (different addresses). Full results in `docs/findings.md`.
 
+## Project Alignment
+
+The current proof of concept is organized around the capstone brief's staged design:
+
+- preprocessing for multilingual cleanup and normalization
+- embedding-based candidate selection to reduce pair explosion
+- five matching levels for exact checks, geo checks, LLM review, and scoring
+- explainable output with both classification and reasoning text
+
+For quick review references, see `docs/architecture.md` and `docs/project_requirements_traceability.md`.
+
 ## Project Structure
 
 ```

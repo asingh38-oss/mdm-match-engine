@@ -17,8 +17,10 @@ logger = get_logger(__name__)
 
 def run_matching_pipeline(record_a: dict, record_b: dict) -> dict:
     """
-    runs a pair of records through all 5 matching levels.
-    returns the full result including final score and classification.
+    Run a pair of processed records through the full matching stack.
+
+    The earlier levels generate evidence and the final scoring layer converts
+    that evidence into a single explainable match decision.
     """
     name_a = record_a.get("name_clean", "unknown")
     name_b = record_b.get("name_clean", "unknown")
@@ -26,23 +28,23 @@ def run_matching_pipeline(record_a: dict, record_b: dict) -> dict:
 
     level_results = {}
 
-    # level 1 — fast fuzzy match, no API calls
+    # Level 1 provides quick deterministic evidence before any external calls.
     logger.info("running level 1...")
     level_results["level1"] = exact_match_score(record_a, record_b)
 
-    # level 2 — geo distance check
+    # Level 2 adds geo proximity when clean address data is available.
     logger.info("running level 2...")
     level_results["level2"] = geo_distance_check(record_a, record_b)
 
-    # level 3 — LLM company name verification
+    # Level 3 focuses on semantic company-name relationships and aliases.
     logger.info("running level 3...")
     level_results["level3"] = verify_company_names(record_a, record_b)
 
-    # level 4 — LLM address deep analysis
+    # Level 4 inspects address structure beyond plain-string similarity.
     logger.info("running level 4...")
     level_results["level4"] = analyze_addresses(record_a, record_b)
 
-    # level 5 — combine everything into final score
+    # Level 5 turns the accumulated evidence into the reported decision.
     logger.info("running level 5...")
     final = compute_final_score(level_results)
 
