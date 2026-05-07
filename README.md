@@ -162,7 +162,7 @@ python -m pytest tests/unit/ -v
 | Aditya Singh | Set up the repo, CI, and dev environment. Debugged and integrated teammate contributions throughout all 3 weeks |
 | Maddy | |
 | Samir | |
-| Darell | |
+| Darell | Helped with documentation updates, cleanup, and small project refinements |
 
 ## Timeline
 
